@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="196dp"
+    android:layout_height="244dp"
+    android:layout_marginStart="14dp"
+    android:layout_marginEnd="14dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:id="@+id/cardContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_glass_normal"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <FrameLayout
+            android:id="@+id/iconPlate"
+            android:layout_width="116dp"
+            android:layout_height="116dp"
+            android:background="@drawable/card_inner_plate">
+
+            <ImageView
+                android:id="@+id/ivCardIcon"
+                android:layout_width="68dp"
+                android:layout_height="68dp"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvCardTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.14"
+            android:singleLine="true"
+            android:text="YOUTUBE"
+            android:textColor="#EBF4FC"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvCardSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.18"
+            android:singleLine="true"
+            android:text="SYSTEM ENTER"
+            android:textColor="#9BB2C6"
+            android:textSize="10sp"
+            android:visibility="invisible" />
+
+        <View
+            android:id="@+id/vActiveDot"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/dot_cyan"
+            android:visibility="invisible" />
+    </LinearLayout>
+</FrameLayout>
