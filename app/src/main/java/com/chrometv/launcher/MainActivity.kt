@@ -17,6 +17,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 
 data class LauncherCard(
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity() {
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private var bindingCardId: String? = null
-    private var lastFocusedIndex = 0
+    private var lastFocusedIndex = 3 // Start centered on MEDIA HUB!
 
     private val prefs by lazy { getSharedPreferences("chrome_tv_prefs", Context.MODE_PRIVATE) }
 
@@ -113,7 +115,7 @@ class MainActivity : AppCompatActivity() {
             id = "media_hub",
             indexText = "04",
             title = "MEDIA HUB",
-            subtitle = "ALL APPS",
+            subtitle = "SYSTEM ENTER",
             iconRes = R.drawable.ic_media_hub,
             candidatePackages = emptyList(),
             isMediaHub = true
@@ -177,16 +179,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playSound(id: Int) {
-        if (id != 0) soundPool.play(id, 0.85f, 0.85f, 1, 0, 1.0f)
+        if (id != 0) soundPool.play(id, 0.80f, 0.80f, 1, 0, 1.0f)
     }
 
     private fun setupCarousel() {
+        val dm = resources.displayMetrics
+        val cardPx = (236 * dm.density).toInt()
+        val sidePad = ((dm.widthPixels - cardPx) / 2).coerceAtLeast(80)
+        rvCarousel.setPadding(sidePad, 0, sidePad, 0)
+
         val lm = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvCarousel.layoutManager = lm
         rvCarousel.adapter = CarouselAdapter()
+        rvCarousel.scrollToPosition(lastFocusedIndex)
         rvCarousel.post {
-            rvCarousel.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
+            centerScrollTo(lastFocusedIndex)
+            rvCarousel.postDelayed({
+                rvCarousel.findViewHolderForAdapterPosition(lastFocusedIndex)?.itemView?.requestFocus()
+            }, 80)
         }
+    }
+
+    private fun centerScrollTo(position: Int) {
+        val lm = rvCarousel.layoutManager as? LinearLayoutManager ?: return
+        val scroller = object : LinearSmoothScroller(this) {
+            override fun calculateDtToFit(
+                viewStart: Int, viewEnd: Int, boxStart: Int, boxEnd: Int, snapPreference: Int
+            ): Int {
+                return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
+            }
+            override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
+                return 85f / displayMetrics.densityDpi
+            }
+        }
+        scroller.targetPosition = position
+        lm.startSmoothScroll(scroller)
     }
 
     private fun setupNetworkMonitor() {
@@ -224,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                 vpnOn = true
             }
         }
-        val activeColor = Color.parseColor("#78F0FF")
+        val activeColor = Color.parseColor("#7CF2FF")
         val dimColor = Color.parseColor("#667A8C")
 
         ivStatusWifi.setColorFilter(if (wifiOn) activeColor else dimColor)
@@ -316,7 +343,11 @@ class MainActivity : AppCompatActivity() {
                 launchPackage(app.packageName)
             }
         }
+        appsOverlay.alpha = 0f
+        appsOverlay.scaleX = 0.96f
+        appsOverlay.scaleY = 0.96f
         appsOverlay.visibility = View.VISIBLE
+        appsOverlay.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180).start()
         rvAppsGrid.post {
             rvAppsGrid.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
         }
@@ -337,7 +368,7 @@ class MainActivity : AppCompatActivity() {
                 closeAppsOverlay()
                 return true
             }
-            return true // Home launcher ignores Back at root
+            return true
         }
         return super.onKeyDown(keyCode, event)
     }
@@ -360,9 +391,12 @@ class MainActivity : AppCompatActivity() {
             val container: LinearLayout = v.findViewById(R.id.cardContainer)
             val iconPlate: View = v.findViewById(R.id.iconPlate)
             val ivIcon: ImageView = v.findViewById(R.id.ivCardIcon)
+            val ivHeroChrome: ImageView = v.findViewById(R.id.ivHeroChrome)
             val tvTitle: TextView = v.findViewById(R.id.tvCardTitle)
             val tvSub: TextView = v.findViewById(R.id.tvCardSub)
             val vDot: View = v.findViewById(R.id.vActiveDot)
+            val ivGlintTop: ImageView = v.findViewById(R.id.ivGlintTop)
+            val ivGlintBottom: ImageView = v.findViewById(R.id.ivGlintBottom)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -375,33 +409,64 @@ class MainActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val card = cards[position]
-            holder.ivIcon.setImageResource(card.iconRes)
             holder.tvTitle.text = card.title
             holder.tvSub.text = card.subtitle
 
+            if (card.isMediaHub) {
+                holder.ivIcon.visibility = View.GONE
+                holder.ivHeroChrome.visibility = View.VISIBLE
+            } else {
+                holder.ivHeroChrome.visibility = View.GONE
+                holder.ivIcon.visibility = View.VISIBLE
+                holder.ivIcon.setImageResource(card.iconRes)
+            }
+
+            // Initial unfocused depth state
+            holder.itemView.scaleX = 0.90f
+            holder.itemView.scaleY = 0.90f
+            holder.itemView.alpha = 0.62f
+
             holder.itemView.setOnFocusChangeListener { v, hasFocus ->
+                val pos = holder.bindingAdapterPosition
+                if (pos == RecyclerView.NO_POSITION) return@setOnFocusChangeListener
                 if (hasFocus) {
-                    if (lastFocusedIndex != holder.bindingAdapterPosition) {
+                    if (lastFocusedIndex != pos) {
                         playSound(sndNav)
                     }
-                    lastFocusedIndex = holder.bindingAdapterPosition
+                    lastFocusedIndex = pos
                     tvTopIndex.text = card.indexText
                     tvTopSection.text = card.title
                     holder.container.background =
                         ContextCompat.getDrawable(this@MainActivity, R.drawable.card_glass_focused)
                     holder.tvSub.visibility = View.VISIBLE
                     holder.vDot.visibility = View.VISIBLE
+                    holder.ivGlintTop.visibility = View.VISIBLE
+                    holder.ivGlintBottom.visibility = View.VISIBLE
                     holder.iconPlate.alpha = 1.0f
-                    v.animate().scaleX(1.16f).scaleY(1.16f).setDuration(150).start()
-                    v.elevation = 20f
-                    rvCarousel.smoothScrollToPosition(holder.bindingAdapterPosition)
+                    v.animate()
+                        .scaleX(1.18f)
+                        .scaleY(1.18f)
+                        .alpha(1.0f)
+                        .setDuration(190)
+                        .setInterpolator(DecelerateInterpolator())
+                        .start()
+                    v.elevation = 24f
+                    centerScrollTo(pos)
                 } else {
                     holder.container.background =
                         ContextCompat.getDrawable(this@MainActivity, R.drawable.card_glass_normal)
                     holder.tvSub.visibility = View.INVISIBLE
                     holder.vDot.visibility = View.INVISIBLE
-                    holder.iconPlate.alpha = 0.65f
-                    v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(150).start()
+                    holder.ivGlintTop.visibility = View.INVISIBLE
+                    holder.ivGlintBottom.visibility = View.INVISIBLE
+                    holder.iconPlate.alpha = 0.72f
+                    v.animate()
+                        .scaleX(0.90f)
+                        .scaleY(0.90f)
+                        .alpha(0.62f)
+                        .setDuration(190)
+                        .setInterpolator(DecelerateInterpolator())
+                        .start()
                     v.elevation = 0f
                 }
             }

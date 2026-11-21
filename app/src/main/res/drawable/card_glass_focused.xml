@@ -1,10 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <gradient
-        android:angle="135"
-        android:startColor="#99A8C6D8"
-        android:centerColor="#663E586B"
-        android:endColor="#88192734" />
-    <stroke android:width="2dp" android:color="#E6E8F6FF" />
-    <corners android:radius="20dp" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer soft cyan-silver aura -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1E8FE8FF" />
+            <corners android:radius="26dp" />
+        </shape>
+    </item>
+    <item android:left="5dp" android:top="5dp" android:right="5dp" android:bottom="5dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#2E8CE4FF" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+    <!-- Main frosted crystal glass body -->
+    <item android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#A8BBD2E2"
+                android:centerColor="#723A5264"
+                android:endColor="#92182532" />
+            <stroke android:width="2dp" android:color="#F2EEF8FF" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <!-- Diagonal glossy glass reflection sheen -->
+    <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="130dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#48FFFFFF"
+                android:endColor="#00FFFFFF" />
+            <corners android:topLeftRadius="18dp" android:topRightRadius="18dp" />
+        </shape>
+    </item>
+</layer-list>

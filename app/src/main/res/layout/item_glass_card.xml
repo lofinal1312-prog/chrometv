@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="196dp"
-    android:layout_height="244dp"
-    android:layout_marginStart="14dp"
-    android:layout_marginEnd="14dp"
+    android:layout_width="216dp"
+    android:layout_height="278dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:focusable="true"
@@ -16,19 +16,28 @@
         android:background="@drawable/card_glass_normal"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="18dp">
+        android:padding="22dp">
 
         <FrameLayout
             android:id="@+id/iconPlate"
-            android:layout_width="116dp"
-            android:layout_height="116dp"
+            android:layout_width="132dp"
+            android:layout_height="132dp"
             android:background="@drawable/card_inner_plate">
 
             <ImageView
                 android:id="@+id/ivCardIcon"
-                android:layout_width="68dp"
-                android:layout_height="68dp"
+                android:layout_width="76dp"
+                android:layout_height="76dp"
                 android:layout_gravity="center" />
+
+            <ImageView
+                android:id="@+id/ivHeroChrome"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="3dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_media_hub_chrome"
+                android:visibility="gone" />
         </FrameLayout>
 
         <TextView
@@ -37,11 +46,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:fontFamily="sans-serif-light"
-            android:letterSpacing="0.14"
+            android:letterSpacing="0.16"
             android:singleLine="true"
-            android:text="YOUTUBE"
-            android:textColor="#EBF4FC"
-            android:textSize="16sp" />
+            android:text="MEDIA HUB"
+            android:textColor="#F0F8FF"
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/tvCardSub"
@@ -49,10 +58,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:fontFamily="sans-serif-light"
-            android:letterSpacing="0.18"
+            android:letterSpacing="0.20"
             android:singleLine="true"
             android:text="SYSTEM ENTER"
-            android:textColor="#9BB2C6"
+            android:textColor="#A4BCD0"
             android:textSize="10sp"
             android:visibility="invisible" />
 
@@ -64,4 +73,25 @@
             android:background="@drawable/dot_cyan"
             android:visibility="invisible" />
     </LinearLayout>
+
+    <!-- Specular 4-Point Chrome Sparkle Glints on Focused Card -->
+    <ImageView
+        android:id="@+id/ivGlintTop"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
+        android:src="@drawable/ic_glint"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/ivGlintBottom"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="3dp"
+        android:src="@drawable/ic_glint"
+        android:visibility="invisible" />
 </FrameLayout>
