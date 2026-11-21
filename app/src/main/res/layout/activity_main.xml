@@ -7,22 +7,29 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Slightly Oversized Pure Silver Ice Wallpaper for Smooth Parallax -->
+    <!-- Static GPU-Cached Pure Silver Ice Wallpaper -->
     <ImageView
         android:id="@+id/ivWallpaper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:scaleX="1.08"
-        android:scaleY="1.08"
         android:src="@drawable/bg_silver_ice" />
 
-    <!-- Animated Subtle Silver-Ice Grid + Breathing Spotlight -->
+    <!-- Static GPU-Cached Architectural Grid (0% CPU) -->
     <com.chrometv.launcher.AmbientHudView
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Top HUD Bar (Generous 56dp TV Overscan Safe Margins!) -->
+    <!-- Hardware-Accelerated Breathing Cyan-Silver Aura behind Center Card -->
+    <View
+        android:id="@+id/vBreathingAura"
+        android:layout_width="420dp"
+        android:layout_height="420dp"
+        android:layout_gravity="center"
+        android:alpha="0.45"
+        android:background="@drawable/bg_breathing_aura" />
+
+    <!-- Top HUD Bar (Generous 56dp TV Overscan Safe Margins) -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,7 +37,6 @@
         android:paddingEnd="56dp"
         android:paddingTop="24dp">
 
-        <!-- Dynamic Top-Left Pill: 04 • MEDIA HUB -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -72,7 +78,6 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <!-- Top-Right Clock + Frosted Live VPN & WI-FI Capsule -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -149,7 +154,7 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Center-Locked 3D CoverFlow Carousel with Generous Vertical Room (Zero Clip!) -->
+    <!-- Center-Locked 60fps 3D CoverFlow Carousel -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvCarousel"
         android:layout_width="match_parent"
@@ -160,7 +165,7 @@
         android:paddingTop="52dp"
         android:paddingBottom="52dp" />
 
-    <!-- Bottom Minimalist Navigation Hint (Generous Safe Margins) -->
+    <!-- Bottom Minimalist Navigation Hint -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

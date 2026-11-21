@@ -1,5 +1,8 @@
 package com.chrometv.launcher
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,8 +20,8 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -49,7 +52,7 @@ data class InstalledApp(
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var ivWallpaper: ImageView
+    private lateinit var vBreathingAura: View
     private lateinit var tvTopIndex: TextView
     private lateinit var tvTopSection: TextView
     private lateinit var ivStatusWifi: ImageView
@@ -60,6 +63,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appsOverlay: LinearLayout
     private lateinit var tvOverlayTitle: TextView
     private lateinit var rvAppsGrid: RecyclerView
+
+    private var auraAnim: AnimatorSet? = null
 
     private lateinit var soundPool: SoundPool
     private var sndNav = 0
@@ -150,7 +155,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        ivWallpaper = findViewById(R.id.ivWallpaper)
+        vBreathingAura = findViewById(R.id.vBreathingAura)
         tvTopIndex = findViewById(R.id.tvTopIndex)
         tvTopSection = findViewById(R.id.tvTopSection)
         ivStatusWifi = findViewById(R.id.ivStatusWifi)
@@ -162,9 +167,36 @@ class MainActivity : AppCompatActivity() {
         tvOverlayTitle = findViewById(R.id.tvOverlayTitle)
         rvAppsGrid = findViewById(R.id.rvAppsGrid)
 
+        startBreathingAura()
         initSounds()
         setupCarousel()
         setupNetworkMonitor()
+    }
+
+    private fun startBreathingAura() {
+        vBreathingAura.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        val aAlpha = ObjectAnimator.ofFloat(vBreathingAura, View.ALPHA, 0.25f, 0.85f).apply {
+            duration = 2800L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val aScaleX = ObjectAnimator.ofFloat(vBreathingAura, View.SCALE_X, 0.88f, 1.14f).apply {
+            duration = 2800L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val aScaleY = ObjectAnimator.ofFloat(vBreathingAura, View.SCALE_Y, 0.88f, 1.14f).apply {
+            duration = 2800L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        auraAnim = AnimatorSet().apply {
+            playTogether(aAlpha, aScaleX, aScaleY)
+            start()
+        }
     }
 
     private fun initSounds() {
@@ -191,6 +223,7 @@ class MainActivity : AppCompatActivity() {
         val sidePad = ((dm.widthPixels - cardPx) / 2).coerceAtLeast(64)
         val vertPad = (52 * dm.density).toInt()
         rvCarousel.setPadding(sidePad, vertPad, sidePad, vertPad)
+        rvCarousel.itemAnimator = null
 
         val lm = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvCarousel.layoutManager = lm
@@ -200,43 +233,63 @@ class MainActivity : AppCompatActivity() {
             centerScrollTo(lastFocusedIndex)
             rvCarousel.postDelayed({
                 rvCarousel.findViewHolderForAdapterPosition(lastFocusedIndex)?.itemView?.requestFocus()
-                applyCoverFlowTransforms(lastFocusedIndex)
-            }, 90)
+                applyCoverFlowTransforms(lastFocusedIndex, animate = false)
+            }, 80)
         }
     }
 
-    private fun applyCoverFlowTransforms(focusedPos: Int) {
+    private fun applyCardTransformImmediate(child: View, pos: Int, focusedPos: Int) {
         val density = resources.displayMetrics.density
-        val camDist = 11000f * density
+        // Closer virtual camera (2400 * density) makes 3D CoverFlow tilt clearly visible!
+        child.cameraDistance = 2400f * density
+        val diff = pos - focusedPos
+        child.rotationY = when {
+            diff < 0 -> 26f
+            diff > 0 -> -26f
+            else -> 0f
+        }
+        val scale = if (diff == 0) 1.15f else 0.88f
+        child.scaleX = scale
+        child.scaleY = scale
+        child.alpha = if (diff == 0) 1.0f else if (kotlin.math.abs(diff) == 1) 0.76f else 0.52f
+        child.translationY = if (diff == 0) -6f * density else 4f * density
+        child.elevation = if (diff == 0) 24f else 0f
+    }
+
+    private fun applyCoverFlowTransforms(focusedPos: Int, animate: Boolean = true) {
+        val density = resources.displayMetrics.density
+        val camDist = 2400f * density
         for (i in 0 until rvCarousel.childCount) {
             val child = rvCarousel.getChildAt(i)
             val pos = rvCarousel.getChildAdapterPosition(child)
             if (pos == RecyclerView.NO_POSITION) continue
             child.cameraDistance = camDist
+            if (!animate) {
+                applyCardTransformImmediate(child, pos, focusedPos)
+                continue
+            }
             val diff = pos - focusedPos
             val targetRotY = when {
-                diff < 0 -> 18f   // Left cards tilt gently inward
-                diff > 0 -> -18f  // Right cards tilt gently inward
-                else -> 0f        // Focused center card faces forward
+                diff < 0 -> 26f
+                diff > 0 -> -26f
+                else -> 0f
             }
             val targetScale = if (diff == 0) 1.15f else 0.88f
-            val targetAlpha = if (diff == 0) 1.0f else if (kotlin.math.abs(diff) == 1) 0.74f else 0.50f
+            val targetAlpha = if (diff == 0) 1.0f else if (kotlin.math.abs(diff) == 1) 0.76f else 0.52f
             val targetTransY = if (diff == 0) -6f * density else 4f * density
 
+            child.animate().cancel()
             child.animate()
                 .rotationY(targetRotY)
                 .scaleX(targetScale)
                 .scaleY(targetScale)
                 .alpha(targetAlpha)
                 .translationY(targetTransY)
-                .setDuration(240)
-                .setInterpolator(if (diff == 0) OvershootInterpolator(0.75f) else DecelerateInterpolator())
+                .setDuration(180)
+                .setInterpolator(DecelerateInterpolator())
                 .start()
             child.elevation = if (diff == 0) 24f else 0f
         }
-        // Subtle background parallax shift
-        val parallax = -(focusedPos - 2.5f) * 14f * density
-        ivWallpaper.animate().translationX(parallax).setDuration(380).setInterpolator(DecelerateInterpolator()).start()
     }
 
     private fun centerScrollTo(position: Int) {
@@ -248,7 +301,7 @@ class MainActivity : AppCompatActivity() {
                 return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
             }
             override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
-                return 95f / displayMetrics.densityDpi
+                return 65f / displayMetrics.densityDpi
             }
         }
         scroller.targetPosition = position
@@ -386,7 +439,7 @@ class MainActivity : AppCompatActivity() {
         appsOverlay.scaleX = 0.96f
         appsOverlay.scaleY = 0.96f
         appsOverlay.visibility = View.VISIBLE
-        appsOverlay.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180).start()
+        appsOverlay.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(150).start()
         rvAppsGrid.post {
             rvAppsGrid.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus()
         }
@@ -419,6 +472,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        auraAnim?.cancel()
         networkCallback?.let {
             try { connectivityManager?.unregisterNetworkCallback(it) } catch (_: Exception) {}
         }
@@ -434,6 +488,9 @@ class MainActivity : AppCompatActivity() {
             val vDot: View = v.findViewById(R.id.vActiveDot)
             val ivGlintTop: ImageView = v.findViewById(R.id.ivGlintTop)
             val ivGlintBottom: ImageView = v.findViewById(R.id.ivGlintBottom)
+            init {
+                v.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+            }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -449,6 +506,9 @@ class MainActivity : AppCompatActivity() {
             holder.ivIcon.setImageResource(card.iconRes)
             holder.tvTitle.text = card.title
             holder.tvSub.text = card.subtitle
+
+            // Apply 3D CoverFlow angle immediately so recycled cards never pop in flat
+            applyCardTransformImmediate(holder.itemView, position, lastFocusedIndex)
 
             holder.itemView.setOnFocusChangeListener { _, hasFocus ->
                 val pos = holder.bindingAdapterPosition
@@ -467,7 +527,7 @@ class MainActivity : AppCompatActivity() {
                     holder.ivGlintTop.visibility = View.VISIBLE
                     holder.ivGlintBottom.visibility = View.VISIBLE
                     centerScrollTo(pos)
-                    applyCoverFlowTransforms(pos)
+                    applyCoverFlowTransforms(pos, animate = true)
                 } else {
                     holder.container.background =
                         ContextCompat.getDrawable(this@MainActivity, R.drawable.card_glass_normal)
