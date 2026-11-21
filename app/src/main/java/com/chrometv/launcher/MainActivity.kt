@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -48,6 +49,7 @@ data class InstalledApp(
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var ivWallpaper: ImageView
     private lateinit var tvTopIndex: TextView
     private lateinit var tvTopSection: TextView
     private lateinit var ivStatusWifi: ImageView
@@ -68,7 +70,7 @@ class MainActivity : AppCompatActivity() {
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private var bindingCardId: String? = null
-    private var lastFocusedIndex = 3 // Start centered on MEDIA HUB!
+    private var lastFocusedIndex = 3 // Centered on MEDIA HUB
 
     private val prefs by lazy { getSharedPreferences("chrome_tv_prefs", Context.MODE_PRIVATE) }
 
@@ -78,7 +80,7 @@ class MainActivity : AppCompatActivity() {
             indexText = "01",
             title = "YOUTUBE",
             subtitle = "STREAM VIDEO",
-            iconRes = R.drawable.ic_youtube,
+            iconRes = R.drawable.ic_card_youtube,
             candidatePackages = listOf(
                 "com.teamsmart.videomanager.tv",
                 "com.liskovsoft.smarttubetv.beta",
@@ -91,7 +93,7 @@ class MainActivity : AppCompatActivity() {
             indexText = "02",
             title = "VK VIDEO",
             subtitle = "CHANNELS & SHOWS",
-            iconRes = R.drawable.ic_vk_video,
+            iconRes = R.drawable.ic_card_vk,
             candidatePackages = listOf(
                 "com.vk.vkvideo",
                 "com.vk.tv",
@@ -103,7 +105,7 @@ class MainActivity : AppCompatActivity() {
             indexText = "03",
             title = "VPN",
             subtitle = "SECURE TUNNEL",
-            iconRes = R.drawable.ic_vpn,
+            iconRes = R.drawable.ic_card_vpn,
             candidatePackages = listOf(
                 "com.browsec.vpn",
                 "org.amnezia.vpn",
@@ -116,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             indexText = "04",
             title = "MEDIA HUB",
             subtitle = "SYSTEM ENTER",
-            iconRes = R.drawable.ic_media_hub,
+            iconRes = R.drawable.ic_card_hub,
             candidatePackages = emptyList(),
             isMediaHub = true
         ),
@@ -125,7 +127,7 @@ class MainActivity : AppCompatActivity() {
             indexText = "05",
             title = "BROWSER",
             subtitle = "WEB ACCESS",
-            iconRes = R.drawable.ic_browser,
+            iconRes = R.drawable.ic_card_browser,
             candidatePackages = listOf(
                 "com.phlox.tvwebbrowser",
                 "com.yandex.browser",
@@ -138,7 +140,7 @@ class MainActivity : AppCompatActivity() {
             indexText = "06",
             title = "SETTINGS",
             subtitle = "SYSTEM CONFIG",
-            iconRes = R.drawable.ic_settings,
+            iconRes = R.drawable.ic_card_settings,
             candidatePackages = emptyList(),
             isSettings = true
         )
@@ -148,6 +150,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        ivWallpaper = findViewById(R.id.ivWallpaper)
         tvTopIndex = findViewById(R.id.tvTopIndex)
         tvTopSection = findViewById(R.id.tvTopSection)
         ivStatusWifi = findViewById(R.id.ivStatusWifi)
@@ -179,14 +182,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playSound(id: Int) {
-        if (id != 0) soundPool.play(id, 0.80f, 0.80f, 1, 0, 1.0f)
+        if (id != 0) soundPool.play(id, 0.78f, 0.78f, 1, 0, 1.0f)
     }
 
     private fun setupCarousel() {
         val dm = resources.displayMetrics
-        val cardPx = (236 * dm.density).toInt()
-        val sidePad = ((dm.widthPixels - cardPx) / 2).coerceAtLeast(80)
-        rvCarousel.setPadding(sidePad, 0, sidePad, 0)
+        val cardPx = (176 * dm.density).toInt()
+        val sidePad = ((dm.widthPixels - cardPx) / 2).coerceAtLeast(64)
+        val vertPad = (52 * dm.density).toInt()
+        rvCarousel.setPadding(sidePad, vertPad, sidePad, vertPad)
 
         val lm = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvCarousel.layoutManager = lm
@@ -196,8 +200,43 @@ class MainActivity : AppCompatActivity() {
             centerScrollTo(lastFocusedIndex)
             rvCarousel.postDelayed({
                 rvCarousel.findViewHolderForAdapterPosition(lastFocusedIndex)?.itemView?.requestFocus()
-            }, 80)
+                applyCoverFlowTransforms(lastFocusedIndex)
+            }, 90)
         }
+    }
+
+    private fun applyCoverFlowTransforms(focusedPos: Int) {
+        val density = resources.displayMetrics.density
+        val camDist = 11000f * density
+        for (i in 0 until rvCarousel.childCount) {
+            val child = rvCarousel.getChildAt(i)
+            val pos = rvCarousel.getChildAdapterPosition(child)
+            if (pos == RecyclerView.NO_POSITION) continue
+            child.cameraDistance = camDist
+            val diff = pos - focusedPos
+            val targetRotY = when {
+                diff < 0 -> 18f   // Left cards tilt gently inward
+                diff > 0 -> -18f  // Right cards tilt gently inward
+                else -> 0f        // Focused center card faces forward
+            }
+            val targetScale = if (diff == 0) 1.15f else 0.88f
+            val targetAlpha = if (diff == 0) 1.0f else if (kotlin.math.abs(diff) == 1) 0.74f else 0.50f
+            val targetTransY = if (diff == 0) -6f * density else 4f * density
+
+            child.animate()
+                .rotationY(targetRotY)
+                .scaleX(targetScale)
+                .scaleY(targetScale)
+                .alpha(targetAlpha)
+                .translationY(targetTransY)
+                .setDuration(240)
+                .setInterpolator(if (diff == 0) OvershootInterpolator(0.75f) else DecelerateInterpolator())
+                .start()
+            child.elevation = if (diff == 0) 24f else 0f
+        }
+        // Subtle background parallax shift
+        val parallax = -(focusedPos - 2.5f) * 14f * density
+        ivWallpaper.animate().translationX(parallax).setDuration(380).setInterpolator(DecelerateInterpolator()).start()
     }
 
     private fun centerScrollTo(position: Int) {
@@ -209,7 +248,7 @@ class MainActivity : AppCompatActivity() {
                 return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2)
             }
             override fun calculateSpeedPerPixel(displayMetrics: android.util.DisplayMetrics): Float {
-                return 85f / displayMetrics.densityDpi
+                return 95f / displayMetrics.densityDpi
             }
         }
         scroller.targetPosition = position
@@ -251,8 +290,8 @@ class MainActivity : AppCompatActivity() {
                 vpnOn = true
             }
         }
-        val activeColor = Color.parseColor("#7CF2FF")
-        val dimColor = Color.parseColor("#667A8C")
+        val activeColor = Color.parseColor("#82EEFF")
+        val dimColor = Color.parseColor("#687A8A")
 
         ivStatusWifi.setColorFilter(if (wifiOn) activeColor else dimColor)
         tvStatusWifi.setTextColor(if (wifiOn) activeColor else dimColor)
@@ -389,9 +428,7 @@ class MainActivity : AppCompatActivity() {
     inner class CarouselAdapter : RecyclerView.Adapter<CarouselAdapter.VH>() {
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val container: LinearLayout = v.findViewById(R.id.cardContainer)
-            val iconPlate: View = v.findViewById(R.id.iconPlate)
             val ivIcon: ImageView = v.findViewById(R.id.ivCardIcon)
-            val ivHeroChrome: ImageView = v.findViewById(R.id.ivHeroChrome)
             val tvTitle: TextView = v.findViewById(R.id.tvCardTitle)
             val tvSub: TextView = v.findViewById(R.id.tvCardSub)
             val vDot: View = v.findViewById(R.id.vActiveDot)
@@ -409,24 +446,11 @@ class MainActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: VH, position: Int) {
             val card = cards[position]
+            holder.ivIcon.setImageResource(card.iconRes)
             holder.tvTitle.text = card.title
             holder.tvSub.text = card.subtitle
 
-            if (card.isMediaHub) {
-                holder.ivIcon.visibility = View.GONE
-                holder.ivHeroChrome.visibility = View.VISIBLE
-            } else {
-                holder.ivHeroChrome.visibility = View.GONE
-                holder.ivIcon.visibility = View.VISIBLE
-                holder.ivIcon.setImageResource(card.iconRes)
-            }
-
-            // Initial unfocused depth state
-            holder.itemView.scaleX = 0.90f
-            holder.itemView.scaleY = 0.90f
-            holder.itemView.alpha = 0.62f
-
-            holder.itemView.setOnFocusChangeListener { v, hasFocus ->
+            holder.itemView.setOnFocusChangeListener { _, hasFocus ->
                 val pos = holder.bindingAdapterPosition
                 if (pos == RecyclerView.NO_POSITION) return@setOnFocusChangeListener
                 if (hasFocus) {
@@ -442,16 +466,8 @@ class MainActivity : AppCompatActivity() {
                     holder.vDot.visibility = View.VISIBLE
                     holder.ivGlintTop.visibility = View.VISIBLE
                     holder.ivGlintBottom.visibility = View.VISIBLE
-                    holder.iconPlate.alpha = 1.0f
-                    v.animate()
-                        .scaleX(1.18f)
-                        .scaleY(1.18f)
-                        .alpha(1.0f)
-                        .setDuration(190)
-                        .setInterpolator(DecelerateInterpolator())
-                        .start()
-                    v.elevation = 24f
                     centerScrollTo(pos)
+                    applyCoverFlowTransforms(pos)
                 } else {
                     holder.container.background =
                         ContextCompat.getDrawable(this@MainActivity, R.drawable.card_glass_normal)
@@ -459,15 +475,6 @@ class MainActivity : AppCompatActivity() {
                     holder.vDot.visibility = View.INVISIBLE
                     holder.ivGlintTop.visibility = View.INVISIBLE
                     holder.ivGlintBottom.visibility = View.INVISIBLE
-                    holder.iconPlate.alpha = 0.72f
-                    v.animate()
-                        .scaleX(0.90f)
-                        .scaleY(0.90f)
-                        .alpha(0.62f)
-                        .setDuration(190)
-                        .setInterpolator(DecelerateInterpolator())
-                        .start()
-                    v.elevation = 0f
                 }
             }
 

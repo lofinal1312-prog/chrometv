@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Outer soft cyan-silver aura -->
+    <!-- Soft outer silver-ice halo -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#1E8FE8FF" />
-            <corners android:radius="26dp" />
-        </shape>
-    </item>
-    <item android:left="5dp" android:top="5dp" android:right="5dp" android:bottom="5dp">
-        <shape android:shape="rectangle">
-            <solid android:color="#2E8CE4FF" />
+            <solid android:color="#1AB8E4F8" />
             <corners android:radius="22dp" />
         </shape>
     </item>
-    <!-- Main frosted crystal glass body -->
-    <item android:left="8dp" android:top="8dp" android:right="8dp" android:bottom="8dp">
+    <item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#26CBEBFF" />
+            <corners android:radius="19dp" />
+        </shape>
+    </item>
+    <!-- Main icy frosted silver glass body -->
+    <item android:left="7dp" android:top="7dp" android:right="7dp" android:bottom="7dp">
         <shape android:shape="rectangle">
             <gradient
                 android:angle="135"
-                android:startColor="#A8BBD2E2"
-                android:centerColor="#723A5264"
-                android:endColor="#92182532" />
-            <stroke android:width="2dp" android:color="#F2EEF8FF" />
-            <corners android:radius="20dp" />
+                android:startColor="#A6C8D6E2"
+                android:centerColor="#6E4A5A68"
+                android:endColor="#901B232C" />
+            <stroke android:width="1.8dp" android:color="#F0F2FAFF" />
+            <corners android:radius="17dp" />
         </shape>
     </item>
-    <!-- Diagonal glossy glass reflection sheen -->
-    <item android:left="10dp" android:top="10dp" android:right="10dp" android:bottom="130dp">
+    <!-- Glossy top bevel reflection -->
+    <item android:left="9dp" android:top="9dp" android:right="9dp" android:bottom="110dp">
         <shape android:shape="rectangle">
             <gradient
                 android:angle="270"
-                android:startColor="#48FFFFFF"
+                android:startColor="#42FFFFFF"
                 android:endColor="#00FFFFFF" />
-            <corners android:topLeftRadius="18dp" android:topRightRadius="18dp" />
+            <corners android:topLeftRadius="15dp" android:topRightRadius="15dp" />
         </shape>
     </item>
 </layer-list>

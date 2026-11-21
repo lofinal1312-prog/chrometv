@@ -19,12 +19,12 @@ class AmbientHudView @JvmOverloads constructor(
 
     private var phase = 0f
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(24, 190, 224, 245)
+        color = Color.argb(20, 210, 224, 238)
         strokeWidth = 1f
     }
     private val crossPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(58, 165, 232, 255)
-        strokeWidth = 1.4f
+        color = Color.argb(46, 200, 232, 248)
+        strokeWidth = 1.2f
     }
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var animator: ValueAnimator? = null
@@ -32,7 +32,7 @@ class AmbientHudView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         animator = ValueAnimator.ofFloat(0f, (Math.PI * 2).toFloat()).apply {
-            duration = 6500L
+            duration = 7000L
             repeatCount = ValueAnimator.INFINITE
             interpolator = LinearInterpolator()
             addUpdateListener {
@@ -54,10 +54,9 @@ class AmbientHudView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
 
-        // 1. Subtle central architectural HUD grid + delicate crosshairs
-        val step = 110f
-        val startX = w * 0.16f
-        val endX = w * 0.84f
+        val step = 105f
+        val startX = w * 0.14f
+        val endX = w * 0.86f
         val startY = h * 0.18f
         val endY = h * 0.82f
 
@@ -72,27 +71,26 @@ class AmbientHudView @JvmOverloads constructor(
             y += step
         }
 
-        // Crosshairs at select intersections
         x = startX + step
         while (x < endX) {
             y = startY + step
             while (y < endY) {
-                canvas.drawLine(x - 4f, y, x + 4f, y, crossPaint)
-                canvas.drawLine(x, y - 4f, x, y + 4f, crossPaint)
+                canvas.drawLine(x - 3.5f, y, x + 3.5f, y, crossPaint)
+                canvas.drawLine(x, y - 3.5f, x, y + 3.5f, crossPaint)
                 y += step * 2
             }
             x += step * 2
         }
 
-        // 2. Soft breathing cyan-silver radial spotlight behind focused center card
-        val pulse = 0.88f + 0.12f * sin(phase)
-        val radius = (h * 0.42f) * pulse
-        val alpha = (56 * pulse).toInt()
+        // Cool silver-ice breathing aura behind the focused center card
+        val pulse = 0.90f + 0.10f * sin(phase)
+        val radius = (h * 0.38f) * pulse
+        val alpha = (44 * pulse).toInt()
         glowPaint.shader = RadialGradient(
             w * 0.5f, h * 0.50f, radius,
             intArrayOf(
-                Color.argb(alpha, 130, 228, 255),
-                Color.argb(alpha / 3, 100, 165, 210),
+                Color.argb(alpha, 200, 232, 248),
+                Color.argb(alpha / 3, 140, 175, 198),
                 Color.TRANSPARENT
             ),
             floatArrayOf(0f, 0.55f, 1f),

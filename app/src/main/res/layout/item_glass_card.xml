@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="216dp"
-    android:layout_height="278dp"
-    android:layout_marginStart="10dp"
-    android:layout_marginEnd="10dp"
+    android:layout_width="160dp"
+    android:layout_height="208dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:focusable="true"
@@ -16,69 +16,53 @@
         android:background="@drawable/card_glass_normal"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="22dp">
+        android:padding="16dp">
 
-        <FrameLayout
-            android:id="@+id/iconPlate"
-            android:layout_width="132dp"
-            android:layout_height="132dp"
-            android:background="@drawable/card_inner_plate">
-
-            <ImageView
-                android:id="@+id/ivCardIcon"
-                android:layout_width="76dp"
-                android:layout_height="76dp"
-                android:layout_gravity="center" />
-
-            <ImageView
-                android:id="@+id/ivHeroChrome"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="3dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_media_hub_chrome"
-                android:visibility="gone" />
-        </FrameLayout>
+        <ImageView
+            android:id="@+id/ivCardIcon"
+            android:layout_width="98dp"
+            android:layout_height="98dp"
+            android:scaleType="centerCrop" />
 
         <TextView
             android:id="@+id/tvCardTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="14dp"
             android:fontFamily="sans-serif-light"
-            android:letterSpacing="0.16"
+            android:letterSpacing="0.14"
             android:singleLine="true"
             android:text="MEDIA HUB"
-            android:textColor="#F0F8FF"
-            android:textSize="17sp" />
+            android:textColor="#F2F8FF"
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/tvCardSub"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="3dp"
             android:fontFamily="sans-serif-light"
-            android:letterSpacing="0.20"
+            android:letterSpacing="0.16"
             android:singleLine="true"
             android:text="SYSTEM ENTER"
-            android:textColor="#A4BCD0"
-            android:textSize="10sp"
+            android:textColor="#A4B8C8"
+            android:textSize="8sp"
             android:visibility="invisible" />
 
         <View
             android:id="@+id/vActiveDot"
-            android:layout_width="6dp"
-            android:layout_height="6dp"
-            android:layout_marginTop="8dp"
+            android:layout_width="5dp"
+            android:layout_height="5dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/dot_cyan"
             android:visibility="invisible" />
     </LinearLayout>
 
-    <!-- Specular 4-Point Chrome Sparkle Glints on Focused Card -->
+    <!-- Specular 4-Point Chrome Sparkle Glints -->
     <ImageView
         android:id="@+id/ivGlintTop"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
         android:layout_gravity="top|end"
         android:layout_marginTop="1dp"
         android:layout_marginEnd="1dp"
@@ -87,11 +71,11 @@
 
     <ImageView
         android:id="@+id/ivGlintBottom"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="28dp"
-        android:layout_marginBottom="3dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="2dp"
         android:src="@drawable/ic_glint"
         android:visibility="invisible" />
 </FrameLayout>

@@ -10,7 +10,7 @@
     <application
         android:allowBackup="true"
         android:banner="@drawable/tv_banner"
-        android:icon="@drawable/ic_media_hub"
+        android:icon="@drawable/ic_card_hub"
         android:label="ChromeTV Launcher"
         android:theme="@style/Theme.ChromeTV">
 
